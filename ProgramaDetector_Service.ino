@@ -19,7 +19,7 @@ void DeliveryCatcher() {
   DT = flParam;
   strcpy(DTString,stParam);
   Serial.print(F("Delivery is register like..."));
-  Serial.println(DTString);
+  Serial.print(DTString);
   DeliveryRequestValidator = true;
 }
 void MeasureOperationSelector() {
@@ -40,14 +40,7 @@ void MeasureOperationSelector() {
     ConversionMethodSelectorValidator = false;
   }
   else if (inParam == 20) {
-    MD = 20;
-    Serial.println(F("Preparing RS232 communication..."));
-    MeasureOperationSelectorValidator = true;
-    IsCollimator = true;
-    SampleMaterialValidator = true;
-    EnergyValidator = true;
-    FrecuencyValidator = true;
-    ConversionMethodSelectorValidator = true;
+    Serial.println(F("Not implemented yet"));
   }
 }
 void ConversionMethodCatcher() {
