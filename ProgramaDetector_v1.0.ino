@@ -1,5 +1,5 @@
-/*Este es un programa para poder controlar Leds desde el propio terminal*/
-//Library EEPROM
+
+//Librarys
 #include <EEPROM.h>
 #include <SoftwareSerial.h> //It would be use to communicate with the Ionization Chamber via RS232
 
@@ -7,14 +7,19 @@
 
 SoftwareSerial RS232(2, 3);//Rx & Tx pins
 
-///String to receive Response for the Ionization Chamber
-String reply232;
+///RS232 control variables
+//
+String reply232; //String to receive Response for the Ionization Chamber
+bool CheckCommunication_Flag = false;
 
+float receiverDose = 0.00;
+float receiverTime = 0.00;
 
+///Control Variables
+//
 boolean debug = false;
 boolean mode = true;
-//Declaración de variables
-//
+
 ///Led Status
 //
 #define Led1 13
@@ -92,11 +97,11 @@ unsigned long int TotalTime;
 unsigned long int MomentumTimer;
 
 ///Maximum Time to do a PING
-const unsigned long CTmax = 600000000; //1 segundo
+const unsigned long CTmax = 600000000; //1 minuto
 unsigned long CT = 0; //Connection Timeout
 
 ///Task Control Timers
-#define Tping 100000 //periodo tarea1
+#define ControlTime 500000 //periodo control de RS232
 unsigned long int ts1;
 unsigned long int t01;
 
@@ -148,7 +153,6 @@ void setup() {
   TIMSK1 |= (1 << OCIE1A);
 
   sei();
-  attachInterrupt(digitalPinToInterrupt(2), SafetyOpen, FALLING);
 }
 ISR(TIMER1_COMPA_vect) {
   SftEvent();
@@ -157,7 +161,9 @@ void SafetyOpen() {
   digitalWrite(Rele, HIGH);
 }
 void loop() {
-  // put your main code here, to run repeatedly:
+  //Program start Timer
+  TotalTime = micros();
+
   if (comandoSerial() == 1) {
     ///Those commands that the Detector can reads
     if ((act[1] == 'W') || (act[1] == 'R') || (act[1] == 'P') || (act[1] == 'A')) {
@@ -167,18 +173,18 @@ void loop() {
       badsyn();
     }
   }
-  //Program start Timer
-  TotalTime = micros();
-  //MomentumTimer = micros();
-  //  ts1 = MomentumTimer - t01;
-  //  if (ts1 >= Tping) {
-  //    PingEvent();
-  //    Serial.write(Ping.length());
-  //    TExecPing = micros();
-  //    t01 = MomentumTimer;
-  //  }
+  ts1 = TotalTime - t01;
+  if (ts1 >= ControlTime) {
+    RS232_Communication();
+    t01 = TotalTime;
+  }
   if (BeamShouldStart() == 1) {
-    BeamControlExecuter();
+    if (MD != 20) {
+      BeamControlExecuter();
+    } 
+    if(CheckCommunication_Flag) {
+      RS232Control();
+    }
   }
   // Vaciar:  act, reg, stParam
   memset(act, '\0', sizeof(act));

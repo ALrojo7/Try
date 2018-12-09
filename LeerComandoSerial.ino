@@ -85,13 +85,8 @@ void SerialTranslator() {
       resp += MD;
     }
     else if ((act[1] == 'W') && (nParam != 0) ) {
-      if ((inParam == 11) || (inParam == 12)) {
         MeasureOperationSelector();
-        resp += MD;
-      }
-      else {
-        badsyn();
-      }
+        resp += MD;    
     }
     else {
       badcmd();
